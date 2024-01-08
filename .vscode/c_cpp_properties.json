@@ -1,0 +1,30 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/hariharan/msc_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/hariharan/ros_ws/devel/include/**",
+        "/home/hariharan/msc_ws1/src/DDOM/anomaly_detector/include/**",
+        "/home/hariharan/ros_ws/src/LCASTOR/lcastor_people_tracker/bayes_people_tracker/include/**",
+        "/home/hariharan/ros_ws/src/LCASTOR/lcastor_people_tracker/bayestracking/include/**",
+        "/home/hariharan/msc_ws/src/darknet_ros/darknet_ros/include/**",
+        "/home/hariharan/msc_ws1/src/DDOM/fn_detector/include/**",
+        "/home/hariharan/msc_ws/src/AD_pro/noise_emulator/include/**",
+        "/home/hariharan/ros_ws/src/LCASTOR/lcastor_people_tracker/object3d_detector/include/**",
+        "/home/hariharan/msc_ws1/src/DDOM/tracker/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
