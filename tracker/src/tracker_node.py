@@ -6,8 +6,8 @@ from sensor_msgs.msg import Image
 from sort import Sort
 import numpy as np
 from std_msgs.msg import Bool
- 
-
+# import ros_numpy
+import cv_bridge
 class tracklet:
     def __init__(self,  x , y , z):
         self.x = []
@@ -36,10 +36,10 @@ class tracklet:
 
 class t2ts:
     def __init__(self):
-        bounding_box_topic_name = rospy.get_param('bb_topic_name')
-        rgb_image_topic_name  = rospy.get_param('rgb_image_topic_name')
-        depth_image_topic_name = rospy.get_param('depth_image_topic_name')
-        sort_topic_name = rospy.get_param('sort_topic_name')
+        bounding_box_topic_name = rospy.get_param('bounding_box_topic')
+        rgb_image_topic_name  = rospy.get_param('rgb_image_topic')
+        depth_image_topic_name = rospy.get_param('depth_image_topic')
+        sort_topic_name = rospy.get_param('sort_topic')
         self.principal_point_x = rospy.get_param('principal_point_x')
         self.principal_point_y = rospy.get_param('principal_point_y')
         self.focal_length_x = rospy.get_param('focal_length_x')
@@ -49,6 +49,7 @@ class t2ts:
         self.depth_image = None
         self.rgb_image = None
         self.empty_np = np.empty((0, 5))
+        self.cvb = cv_bridge.CvBridge()
         self.pub = rospy.Publisher(sort_topic_name , AnomalyScore , queue_size=10)
         self.sub1 = rospy.Subscriber(bounding_box_topic_name , BoundingBox , self.cb1)
         self.sub2 = rospy.Subscriber(rgb_image_topic_name , Image  , self.rgb_cb)
@@ -65,9 +66,10 @@ class t2ts:
         for person in self.known_people.keys():
             depths.append(self.known_people[person].last_depth)
         min_ = np.argmin(np.array(depths))
-        return self.known_people[self.known_people.keys()[min_]].get_tracklet()
+        return self.known_people[list(self.known_people.keys())[min_]].get_tracklet()
 
     def sort_to_ts(self , bb_list):
+        # print(bb_list)
         # fp  =True
         depth_map = self.depth_image
         tracked_bbs = self.sort_obj.update(bb_list)
@@ -100,18 +102,19 @@ class t2ts:
         a[: , 3] = np.array(data.ymax)
         self.sort_to_ts(a)
         self.x , self.y , self.z  = self.nearest_track()
+        # print(self.x)
 
 
     def depth_cb(self , data):
-        self.depth_image = data
+        self.depth_image = self.cvb.imgmsg_to_cv2(data)
 
     def rgb_cb(self , data):
         pub_msg  = AnomalyScore()
         pub_msg.image = data
-        hdm_feed =  rospy.wait_for_message('/safe_operation'  , Bool)
-        if not hdm_feed:
-            self.sort_obj.update(self.empty_np) 
-        pub_msg.no_feed = hdm_feed
+        # hdm_feed =  rospy.wait_for_message('/safe_operation'  , Bool)
+        # if not hdm_feed:
+            # self.sort_obj.update(self.empty_np) 
+        # pub_msg.no_feed = hdm_feed
         pub_msg.data.x = self.x
         pub_msg.data.y = self.y
         pub_msg.data.z = self.z

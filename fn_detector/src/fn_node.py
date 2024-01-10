@@ -12,11 +12,11 @@ from ddom_msgs.msg import AnomalyScore
 import rospkg
 class fn_node:
     def __init__(self):
-        self.fn_topic = rospy.get_param('/fn_topic_name')
+        self.fn_topic = rospy.get_param('/false_negative_topic')
         self.anomaly_score_topic = rospy.get_param('/anomaly_score_topic')
         self.pub = rospy.Publisher(self.fn_node , AnomalyScore , queue_size=10 )
         self.transform = Resize(256)
-        self.model_path = rospy.get_param('/fn_detector_path')
+        self.model_path = rospy.get_param('/fnd_model_location')
         self.model = self.load_model()
         self.sub1 = rospy.Subscriber(self.anomaly_score_topic , AnomalyScore , self.cb1)
     

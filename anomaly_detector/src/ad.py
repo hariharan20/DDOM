@@ -15,7 +15,7 @@ class ad_ros():
         self.device = rospy.get_param('/device')
         self.timeseries_topic = rospy.get_param('/timeseries_topic')
         self.anomaly_score_topic = rospy.get_param('/anomaly_score_topic')
-        self.model_directory = rospy.get_param('/model_location')
+        self.model_directory = rospy.get_param('/ad_model_location')
         self.model.load_state_dict(torch.load(self.model_directory))
         self.model.to(self.device)#
         self.model.eval()
