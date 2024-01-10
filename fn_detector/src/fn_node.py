@@ -59,4 +59,6 @@ class fn_node:
 
 if __name__ == "__main__":
     rospy.init_node('fn_node')
+    obj = fn_node()
+    rospy.spin()
     

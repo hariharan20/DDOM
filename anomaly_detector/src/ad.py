@@ -42,4 +42,8 @@ class ad_ros():
 
         data.anomaly_score = anomaly_score
         self.Publisher.publish(data)
-    
+
+if __name__ == "__main__":
+    rospy.init_node('ad_node')
+    obj = ad_ros()
+    rospy.spin()
