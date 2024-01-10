@@ -17,9 +17,9 @@ class tracklet:
         self.update(x , y , z)
         self.not_known_for = 0
     def update(self , x_new , y_new , z_new):
-        self.x.append(x_new)
-        self.y.append(y_new)
-        self.z.append(z_new)
+        self.x.append(float(x_new/1000))
+        self.y.append(float(y_new/1000))
+        self.z.append(float(z_new/1000))
         
         self.not_known_for = 0
         if len(self.x) > 60:
@@ -102,7 +102,7 @@ class t2ts:
         a[: , 3] = np.array(data.ymax)
         self.sort_to_ts(a)
         self.x , self.y , self.z  = self.nearest_track()
-        # print(self.x)
+        print(self.x)
 
 
     def depth_cb(self , data):

@@ -1,3 +1,3 @@
-std_msgs/Float32[] x
-std_msgs/Float32[] y
-std_msgs/Float32[] z
+float64[] x
+float64[] y
+float64[] z
