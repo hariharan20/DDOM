@@ -40,20 +40,25 @@ class t2ts:
         rgb_image_topic_name  = rospy.get_param('rgb_image_topic_name')
         depth_image_topic_name = rospy.get_param('depth_image_topic_name')
         sort_topic_name = rospy.get_param('sort_topic_name')
+        self.principal_point_x = rospy.get_param('principal_point_x')
+        self.principal_point_y = rospy.get_param('principal_point_y')
+        self.focal_length_x = rospy.get_param('focal_length_x')
+        self.focal_length_y = rospy.get_param('focal_length_y')
         self.sort_obj =  Sort()
         self.known_people = {}
         self.depth_image = None
         self.rgb_image = None
+        self.empty_np = np.empty((0, 5))
         self.pub = rospy.Publisher(sort_topic_name , AnomalyScore , queue_size=10)
         self.sub1 = rospy.Subscriber(bounding_box_topic_name , BoundingBox , self.cb1)
         self.sub2 = rospy.Subscriber(rgb_image_topic_name , Image  , self.rgb_cb)
         self.sub3 = rospy.Subscriber(depth_image_topic_name , Image  , self.depth_cb)
     
-    def get_depth(self , x , y , depth_map):
-        xInMeters = None
-        yInMeters = None
-        zInMeters = None
-        return xInMeters , yInMeters , zInMeters
+    def get_depth(self , xAvg , yAvg , depth_map):
+        Zinm = depth_map[yAvg][xAvg]
+        Xinm = ( xAvg - self.principal_point_x) * (Zinm / self.focal_length_x)
+        Yinm = ( yAvg - self.principal_point_y) * (Zinm / self.focal_length_y)
+        return Xinm , Yinm , Zinm
     
     def nearest_track(self):
         depths = []
@@ -70,10 +75,9 @@ class t2ts:
         for bb in tracked_bbs:
             person_id = bb[-1]
             currentIds.append(person_id)
-            x =  None# Average of X
-            y = None# Average of y
+            x =  round((bb[0] + bb[2])/2)
+            y = round((bb[1] + bb[3])/2)
             xInMeters , yInMeters ,zInMeters  = self.get_depth(x  ,y , depth_map)
-            # currentIds
             if person_id in self.known_people.keys():
                 self.known_people[person_id].update(xInMeters , yInMeters , zInMeters)
 
@@ -87,11 +91,7 @@ class t2ts:
                     # if len(self.known_people[id].x) < 60:
                         # fp = True
                     del self.known_people[id]
-            
-            
-            
-                
-        # Write to create Time series from the Sort
+
     def cb1(self , data):
         a = np.zeros((len(data.ids), 5))
         a[: , 0] = np.array(data.xmin)
@@ -109,6 +109,8 @@ class t2ts:
         pub_msg  = AnomalyScore()
         pub_msg.image = data
         hdm_feed =  rospy.wait_for_message('/safe_operation'  , Bool)
+        if not hdm_feed:
+            self.sort_obj.update(self.empty_np) 
         pub_msg.no_feed = hdm_feed
         pub_msg.data.x = self.x
         pub_msg.data.y = self.y
