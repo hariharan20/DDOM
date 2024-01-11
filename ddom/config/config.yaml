@@ -1,9 +1,9 @@
 device: 'cpu'
 timeseries_topic: 'ts_topic'
 anomaly_score_topic: 'ad_topic'
-ad_model_location: $(find anomaly_detector)/model/best_ad_model.pt
+ad_model_location: /model/model_49
 false_negative_topic: 'fn_topic'
-fnd_model_location: $(find fn_detector)/model/best_fnd_model.pt
+fnd_model_location: /model/best_model.pt
 bounding_box_topic: 'h_boxes'
 rgb_image_topic: '/camera/color/image_raw'
 depth_image_topic: '/camera/depth/image_rect_raw'
@@ -12,3 +12,4 @@ principal_point_x: 320.5
 principal_point_y: 240.5
 focal_length_x: 554.254691191187
 focal_length_y: 554.254691191187
+safe_operation_topic: 'safe_operation'

@@ -6,7 +6,7 @@ import cv_bridge
 from torch import nn 
 import torch
 from torchvision import models
-import ros_numpy
+# import ros_numpy
 from torchvision.transforms import Resize
 from ddom_msgs.msg import AnomalyScore
 import rospkg
@@ -14,10 +14,13 @@ class fn_node:
     def __init__(self):
         self.fn_topic = rospy.get_param('/false_negative_topic')
         self.anomaly_score_topic = rospy.get_param('/anomaly_score_topic')
-        self.pub = rospy.Publisher(self.fn_node , AnomalyScore , queue_size=10 )
+        self.pub = rospy.Publisher(self.fn_topic , AnomalyScore , queue_size=10 )
         self.transform = Resize(256)
-        self.model_path = rospy.get_param('/fnd_model_location')
+        # self.model_path = 
+        rp = rospkg.RosPack()
+        self.model_path = rp.get_path('fn_detector') + rospy.get_param('/fnd_model_location')
         self.model = self.load_model()
+        self.cvb = cv_bridge.CvBridge()
         self.sub1 = rospy.Subscriber(self.anomaly_score_topic , AnomalyScore , self.cb1)
     
     def load_model(self):
@@ -42,11 +45,13 @@ class fn_node:
         return image
     
     def cb1(self, data):
-        if data.no_feed:
+        rospy.logerr(data.no_feed)
+        if bool(data.no_feed.data):
             if bool(data.image):
-                data_np = ros_numpy.numpify(data.image)
+                data_np = self.cvb.imgmsg_to_cv2(data.image)
                 data_np = self.preprocess(data_np)
                 pred = self.model(data_np)
+                rospy.logerr(pred)
                 if pred > 0.17:
                     fn = True
                 else :
@@ -54,6 +59,7 @@ class fn_node:
 
         else: 
             fn = False
+        rospy.loginfo(fn)
         data.false_negative = fn
         self.pub.publish(data)
 

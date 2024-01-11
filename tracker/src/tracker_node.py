@@ -28,7 +28,7 @@ class tracklet:
             self.z.pop(0)
             self.last_depth  =z_new
     def get_tracklet(self):
-        if len(self.x) <60:
+        if len(self.x) < 60:
             return None
         else:
             return [self.x , self.y, self.z]
@@ -39,18 +39,25 @@ class t2ts:
         bounding_box_topic_name = rospy.get_param('bounding_box_topic')
         rgb_image_topic_name  = rospy.get_param('rgb_image_topic')
         depth_image_topic_name = rospy.get_param('depth_image_topic')
-        sort_topic_name = rospy.get_param('sort_topic')
+        sort_topic_name = rospy.get_param('timeseries_topic')
         self.principal_point_x = rospy.get_param('principal_point_x')
         self.principal_point_y = rospy.get_param('principal_point_y')
         self.focal_length_x = rospy.get_param('focal_length_x')
         self.focal_length_y = rospy.get_param('focal_length_y')
+        self.safe_operation_top_name = rospy.get_param('safe_operation_topic')
         self.sort_obj =  Sort()
         self.known_people = {}
         self.depth_image = None
         self.rgb_image = None
+        self.x = None
+        self.y = None
+        self.z = None
+        self.sentor = True # TO BE CHANGED TO FALSE FOR SAFETY
+        self.pub_flag = False
         self.empty_np = np.empty((0, 5))
         self.cvb = cv_bridge.CvBridge()
         self.pub = rospy.Publisher(sort_topic_name , AnomalyScore , queue_size=10)
+        self.sub_safe = rospy.Subscriber(self.safe_operation_top_name , Bool , self.sentor_cb)
         self.sub1 = rospy.Subscriber(bounding_box_topic_name , BoundingBox , self.cb1)
         self.sub2 = rospy.Subscriber(rgb_image_topic_name , Image  , self.rgb_cb)
         self.sub3 = rospy.Subscriber(depth_image_topic_name , Image  , self.depth_cb)
@@ -65,34 +72,49 @@ class t2ts:
         depths = []
         for person in self.known_people.keys():
             depths.append(self.known_people[person].last_depth)
-        min_ = np.argmin(np.array(depths))
-        return self.known_people[list(self.known_people.keys())[min_]].get_tracklet()
+        if not len(depths) == 0:
+            min_ = np.argmin(np.array(depths))
+            # rospy.logerr(depths[min_])
+            if not depths[min_] == float('inf'):
+                return self.known_people[list(self.known_people.keys())[min_]].get_tracklet()
+            else:
+                self.pub_flag = False
+                return False
+        else:
+            return False
 
     def sort_to_ts(self , bb_list):
         # print(bb_list)
         # fp  =True
         depth_map = self.depth_image
-        tracked_bbs = self.sort_obj.update(bb_list)
-        currentIds = []
-        for bb in tracked_bbs:
-            person_id = bb[-1]
-            currentIds.append(person_id)
-            x =  round((bb[0] + bb[2])/2)
-            y = round((bb[1] + bb[3])/2)
-            xInMeters , yInMeters ,zInMeters  = self.get_depth(x  ,y , depth_map)
-            if person_id in self.known_people.keys():
-                self.known_people[person_id].update(xInMeters , yInMeters , zInMeters)
+        # rospy.logerr(type(depth_map))
+        if not depth_map is None:
+            # rospy.logerr('IT WENT INSIDE AGAIN')
+            tracked_bbs = self.sort_obj.update(bb_list)
+            currentIds = []
+            for bb in tracked_bbs:
+                person_id = bb[-1]
+                currentIds.append(person_id)
+                x =  round((bb[0] + bb[2])/2)
+                y = round((bb[1] + bb[3])/2)
+                xInMeters , yInMeters ,zInMeters  = self.get_depth(x  ,y , depth_map)
+                print(xInMeters , yInMeters , zInMeters)
+                if person_id in self.known_people.keys():
+                    self.known_people[person_id].update(xInMeters , yInMeters , zInMeters)
 
-            else :
-                self.known_people[person_id] = tracklet(xInMeters , yInMeters , zInMeters)
-            
-        for id in self.known_people.keys():
-            if id not in currentIds:
-                self.known_people[id].not_known_for += 1
-                if self.known_people[id].not_known_for == 4 : 
-                    # if len(self.known_people[id].x) < 60:
-                        # fp = True
-                    del self.known_people[id]
+                else :
+                    self.known_people[person_id] = tracklet(xInMeters , yInMeters , zInMeters)
+            kp_ids = list(self.known_people.keys())
+            for id in kp_ids:
+                if id not in currentIds:
+                    self.known_people[id].not_known_for += 1
+                    if self.known_people[id].not_known_for == 4 : 
+                        # if len(self.known_people[id].x) < 60:
+                            # fp = True
+                        del self.known_people[id]
+
+    def sentor_cb(self, data):
+        self.sentor = data.data
 
     def cb1(self , data):
         a = np.zeros((len(data.ids), 5))
@@ -101,8 +123,11 @@ class t2ts:
         a[: , 2] = np.array(data.xmax)
         a[: , 3] = np.array(data.ymax)
         self.sort_to_ts(a)
-        self.x , self.y , self.z  = self.nearest_track()
-        print(self.x)
+        xyz_ntrack = self.nearest_track()
+        if bool(xyz_ntrack):
+            # rospy.logerr(xyz_ntrack)
+            self.pub_flag = Bool(True)
+            self.x , self.y , self.z  = xyz_ntrack
 
 
     def depth_cb(self , data):
@@ -111,13 +136,17 @@ class t2ts:
     def rgb_cb(self , data):
         pub_msg  = AnomalyScore()
         pub_msg.image = data
-        # hdm_feed =  rospy.wait_for_message('/safe_operation'  , Bool)
-        # if not hdm_feed:
+        # rospy.logerr(self.sentor)
+        if self.pub_flag and self.sentor :
+            # rospy.logerr('-----PUBLISHING TIME SERIES-----') 
+            pub_msg.no_feed = Bool(False)
+            pub_msg.data.x = self.x
+            pub_msg.data.y = self.y
+            pub_msg.data.z = self.z
+
+        else: 
             # self.sort_obj.update(self.empty_np) 
-        # pub_msg.no_feed = hdm_feed
-        pub_msg.data.x = self.x
-        pub_msg.data.y = self.y
-        pub_msg.data.z = self.z
+            pub_msg.no_feed = Bool(True)
         self.pub.publish(pub_msg)
     
 
