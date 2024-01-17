@@ -4,7 +4,7 @@ from tracker.msg import BoundingBox
 from darknet_ros_msgs.msg import BoundingBoxes
 
 rospy.init_node('human_boxes')
-pub = rospy.Publisher('h_boxes' , BoundingBox  ,queue_size = 10)
+pub = rospy.Publisher('h_boxes' , BoundingBox  ,queue_size = 1)
 
 def callback(data):
 	msg = BoundingBox()

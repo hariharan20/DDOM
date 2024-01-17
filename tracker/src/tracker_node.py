@@ -3,7 +3,7 @@ import rospy
 from ddom_msgs.msg import AnomalyScore
 from tracker.msg import BoundingBox
 from sensor_msgs.msg import Image
-from sort import Sort
+from sort.sort import Sort
 import numpy as np
 from std_msgs.msg import Bool
 # import ros_numpy
