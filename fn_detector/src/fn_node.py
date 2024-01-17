@@ -45,22 +45,22 @@ class fn_node:
         return image
     
     def cb1(self, data):
-        rospy.logerr(data.no_feed)
+        # rospy.logerr(data.no_feed)
         if bool(data.no_feed.data):
             if bool(data.image):
                 data_np = self.cvb.imgmsg_to_cv2(data.image)
                 data_np = self.preprocess(data_np)
                 pred = self.model(data_np)
-                rospy.logerr(pred)
-                if pred > 0.17:
-                    fn = True
-                else :
+                # rospy.logerr(pred)
+                if pred > 0.2:
                     fn = False
+                else :
+                    fn = True
 
         else: 
             fn = False
-        rospy.loginfo(fn)
-        data.false_negative = fn
+        # rospy.loginfo(fn)
+        data.false_negative.data = fn
         self.pub.publish(data)
 
 if __name__ == "__main__":

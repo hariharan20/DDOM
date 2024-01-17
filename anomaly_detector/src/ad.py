@@ -37,13 +37,14 @@ class ad_ros():
  
     def callback(self , data):
         # print('INSIDE CALLBACK')
-        print(bool(data.no_feed.data))
+        # print(bool(data.no_feed.data))
         if not bool(data.no_feed.data):
+            # rospy.logerr(data.data)
             # print('------- INSIDE MODEL ------')
             input_data = self.normalize([data.data.x , data.data.y , data.data.z])
             output = self.model(input_data)
             anomaly_score = self.anomaly.anomaly_score(output)
-            rospy.loginfo(anomaly_score)
+            # rospy.logerr(anomaly_score)
         else:
             anomaly_score = 0.0
 

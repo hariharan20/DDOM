@@ -3,6 +3,7 @@ import rospy
 from ddom_msgs.msg import AnomalyScore
 from tracker.msg import BoundingBox
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseStamped
 from sort.sort import Sort
 import numpy as np
 from std_msgs.msg import Bool
@@ -17,9 +18,9 @@ class tracklet:
         self.update(x , y , z)
         self.not_known_for = 0
     def update(self , x_new , y_new , z_new):
-        self.x.append(float(x_new/1000))
-        self.y.append(float(y_new/1000))
-        self.z.append(float(z_new/1000))
+        self.x.append(x_new)
+        self.y.append(y_new)
+        self.z.append(z_new)
         
         self.not_known_for = 0
         if len(self.x) > 60:
@@ -28,10 +29,11 @@ class tracklet:
             self.z.pop(0)
             self.last_depth  =z_new
     def get_tracklet(self):
-        if len(self.x) < 60:
-            return None
-        else:
+        if len(self.x) == 60:
             return [self.x , self.y, self.z]
+        else:
+            return None
+            
 
 
 class t2ts:
@@ -56,8 +58,13 @@ class t2ts:
         self.pub_flag = False
         self.empty_np = np.empty((0, 5))
         self.cvb = cv_bridge.CvBridge()
-        self.pub = rospy.Publisher(sort_topic_name , AnomalyScore , queue_size=10)
+        self.pub = rospy.Publisher(sort_topic_name , AnomalyScore , queue_size=1)
+        self.pose_data = PoseStamped()
+        self.pose_data.header.frame_id='camera_link'
+        self.detection_pub = rospy.Publisher('/detection_array' , PoseStamped , queue_size=10 )
+
         self.sub_safe = rospy.Subscriber(self.safe_operation_top_name , Bool , self.sentor_cb)
+        # self.detection_pub = rospy.Publisher('/detection_array' , PoseStamped , queue_size=10 )
         self.sub1 = rospy.Subscriber(bounding_box_topic_name , BoundingBox , self.cb1)
         self.sub2 = rospy.Subscriber(rgb_image_topic_name , Image  , self.rgb_cb)
         self.sub3 = rospy.Subscriber(depth_image_topic_name , Image  , self.depth_cb)
@@ -92,18 +99,24 @@ class t2ts:
             # rospy.logerr('IT WENT INSIDE AGAIN')
             tracked_bbs = self.sort_obj.update(bb_list)
             currentIds = []
+            # rospy.logerr(len(tracked_bbs))
             for bb in tracked_bbs:
                 person_id = bb[-1]
                 currentIds.append(person_id)
                 x =  round((bb[0] + bb[2])/2)
                 y = round((bb[1] + bb[3])/2)
                 xInMeters , yInMeters ,zInMeters  = self.get_depth(x  ,y , depth_map)
+                self.pose_data.pose.position.x = xInMeters/1000
+                self.pose_data.pose.position.y = yInMeters/1000
+                self.pose_data.pose.position.z = zInMeters/1000
+                self.pose_data.header.stamp = rospy.Time.now()
+                self.detection_pub.publish(self.pose_data)
                 print(xInMeters , yInMeters , zInMeters)
                 if person_id in self.known_people.keys():
-                    self.known_people[person_id].update(xInMeters , yInMeters , zInMeters)
+                    self.known_people[person_id].update(xInMeters/1000 , yInMeters/1000 , zInMeters/1000)
 
                 else :
-                    self.known_people[person_id] = tracklet(xInMeters , yInMeters , zInMeters)
+                    self.known_people[person_id] = tracklet(xInMeters/1000 , yInMeters/1000 , zInMeters/1000)
             kp_ids = list(self.known_people.keys())
             for id in kp_ids:
                 if id not in currentIds:
