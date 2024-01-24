@@ -1,5 +1,0 @@
-- name : '/h_boxes'
-  signal_when:
-    condition: "not published"
-    timeout: 0.5
-    safety_critical: True
