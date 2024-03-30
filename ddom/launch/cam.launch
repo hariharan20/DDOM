@@ -1,0 +1,10 @@
+<launch>
+  <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch"/> -->
+  <include file="$(find sim_data)/launch/world.launch"/>
+  <node pkg="noise_emulator" type="cam_node.py" name="noise_emulator_node"/>
+  <include file="$(find darknet_ros)/launch/darknet_ros.launch"/> 
+  <!-- <rosparam file="$(find ddom)/config/config.yaml"/> -->
+  <!-- <node pkg="tracker" type="bb_converter.py" name="bb_node"/>     -->
+
+
+  </launch>

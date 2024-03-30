@@ -1,0 +1,15 @@
+device: 'cpu'
+principal_point_x: 320.5
+principal_point_y: 240.5
+focal_length_x: 554.254691191187
+focal_length_y: 554.254691191187
+tsg_topic: 'tsg_topic'
+sentor_topic: 'safe_operation'
+tsr_topic: 'tsr_topic'
+tsg_model_location: /model/CNN_3_60_best
+fnd_topic: 'fn_topic'
+fnd_model_location: /model/MobileNet_v3_best_model.pt
+bounding_box_topic: 'h_boxes'
+rgb_image_topic: '/camera/color/image_raw'
+fnd_threshold: 0.4 
+depth_image_topic: '/camera/depth/image_rect_raw'

@@ -1,0 +1,11 @@
+<launch>
+
+
+    <!-- <node pkg="tracker" type="tracker_node.py" name="tracker_node"/> -->
+
+    <node pkg="anomaly_detector" type="ad.py" name="ad_node"/>
+    <!-- <node pkg="fn_detector" type="fn_node.py" name="fn_node"/> -->
+
+
+
+</launch>
