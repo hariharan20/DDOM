@@ -10,4 +10,3 @@ The Framework is built on top of **SORT** Tracking and **SENTOR** ros package.
 
 The **SORT** tracker is used to genrate tracklets of objects.
 
-These Tracklets are then fed into an anomaly detector which uses modified **MCHAD** Loss to estimate the deviation. 
