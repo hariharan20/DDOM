@@ -6,9 +6,9 @@
     <include file="$(find ddom)/launch/sentor.launch"/>
     <rosparam file="$(find ddom)/config/config_v2.yaml"/>
     <!-- <node pkg="anomaly_detector" type="" -->
-    <node pkg="tracker" type="TimeSeriesGenerator.py" name="TSG_Node"/>
-    <node pkg="anomaly_detector" type="TimeSeriesRegressor.py" name="ad_node"/>
-    <node pkg="fn_detector" type="FalseNegativeDetector.py" name="fn_node"/>
+    <node pkg="tracker" type="TimeSeriesGenerator.py" name="Time_Series_Generator"/>
+    <node pkg="anomaly_detector" type="TimeSeriesRegressor.py" name="Time_Series_Regressor"/>
+    <node pkg="fn_detector" type="FalseNegativeDetector.py" name="False_Negative_Detector"/>
     <!-- <node pkg="ddom" type="visualizer.py" name="vis_node"/> -->
     <!-- <node pkg="rqt_image_view" type="rqt_image_view" name="image_view_debug" args="/DDOM_vis"/> -->
 
