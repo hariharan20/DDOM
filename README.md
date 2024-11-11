@@ -66,3 +66,15 @@ roslaunch ddom ddom_v2.launch
 /path/to/workspace/src/DDOm/ddom/config/config_v2.yaml
 - Change the config file for custom topic names and camera-specific parameters. 
 
+
+Cite the work :
+```
+@inproceedings{arunachalam2024runtime,
+  title={Runtime Anomaly Monitoring of Human Perception Models for Robotic Systems},
+  author={Arunachalam, H and Huang, Z and Hanheide, M and Guevara, L},
+  booktitle={2024 IEEE 20th International Conference on Automation Science and Engineering (CASE)},
+  pages={723--729},
+  year={2024},
+  organization={IEEE}
+}
+```
