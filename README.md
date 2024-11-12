@@ -67,7 +67,7 @@ roslaunch ddom ddom_v2.launch
 - Change the config file for custom topic names and camera-specific parameters. 
 
 
-Cite the work :
+If you find this work useful, please refer to the following citation:
 ```
 @inproceedings{arunachalam2024runtime,
   title={Runtime Anomaly Monitoring of Human Perception Models for Robotic Systems},
